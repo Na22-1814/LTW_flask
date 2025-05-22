@@ -1,0 +1,239 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Quản lý đơn hàng - Admin - Aloha{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="m-0">Danh sách đơn hàng</h2>
+    <div class="d-flex gap-2">
+        <a href="#" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+            <i class="bi bi-funnel"></i> Lọc
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" id="orderTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">Tất cả đơn hàng</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="false">Chờ xử lý</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab" aria-controls="completed" aria-selected="false">Hoàn thành</button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="orderTabsContent">
+            <!-- Tab: Tất cả đơn hàng -->
+            <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Phương thức</th>
+                                <th>Thanh toán</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                <tr>
+                                    <td>#{{ order.OrderID }}</td>
+                                    <td>{{ order.user.Username }}</td>
+                                    <td>{{ order.OrderDate.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ '{:,.0f}'.format(order.TotalAmount) }} VND</td>
+                                    <td>{{ order.PaymentMethod }}</td>
+                                    <td>
+                                        {% if order.PaymentStatus %}
+                                            <span class="badge bg-success">Đã thanh toán</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if order.OrderStatus == 'Hoàn thành' %}
+                                            <span class="badge bg-success">{{ order.OrderStatus }}</span>
+                                        {% elif order.OrderStatus == 'Chờ thanh toán' %}
+                                            <span class="badge bg-warning text-dark">{{ order.OrderStatus }}</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">{{ order.OrderStatus }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin.order_detail', order_id=order.OrderID) }}" class="btn btn-sm btn-primary">Chi tiết</a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">Chưa có đơn hàng nào.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Chờ xử lý -->
+            <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Phương thức</th>
+                                <th>Thanh toán</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders if order.OrderStatus != 'Hoàn thành' %}
+                                <tr>
+                                    <td>#{{ order.OrderID }}</td>
+                                    <td>{{ order.user.Username }}</td>
+                                    <td>{{ order.OrderDate.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ '{:,.0f}'.format(order.TotalAmount) }} VND</td>
+                                    <td>{{ order.PaymentMethod }}</td>
+                                    <td>
+                                        {% if order.PaymentStatus %}
+                                            <span class="badge bg-success">Đã thanh toán</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning text-dark">{{ order.OrderStatus }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin.order_detail', order_id=order.OrderID) }}" class="btn btn-sm btn-primary">Chi tiết</a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">Không có đơn hàng đang chờ xử lý.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Hoàn thành -->
+            <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Phương thức</th>
+                                <th>Thanh toán</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders if order.OrderStatus == 'Hoàn thành' %}
+                                <tr>
+                                    <td>#{{ order.OrderID }}</td>
+                                    <td>{{ order.user.Username }}</td>
+                                    <td>{{ order.OrderDate.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ '{:,.0f}'.format(order.TotalAmount) }} VND</td>
+                                    <td>{{ order.PaymentMethod }}</td>
+                                    <td>
+                                        <span class="badge bg-success">Đã thanh toán</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ order.OrderStatus }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin.order_detail', order_id=order.OrderID) }}" class="btn btn-sm btn-primary">Chi tiết</a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">Không có đơn hàng hoàn thành.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal lọc đơn hàng -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Lọc đơn hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('admin.orders') }}" method="get" id="filterForm">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Trạng thái đơn hàng</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Chờ thanh toán" {% if request.args.get('status') == 'Chờ thanh toán' %}selected{% endif %}>Chờ thanh toán</option>
+                            <option value="Chờ xác nhận" {% if request.args.get('status') == 'Chờ xác nhận' %}selected{% endif %}>Chờ xác nhận</option>
+                            <option value="Hoàn thành" {% if request.args.get('status') == 'Hoàn thành' %}selected{% endif %}>Hoàn thành</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment" class="form-label">Trạng thái thanh toán</label>
+                        <select class="form-select" id="payment" name="payment">
+                            <option value="">Tất cả</option>
+                            <option value="1" {% if request.args.get('payment') == '1' %}selected{% endif %}>Đã thanh toán</option>
+                            <option value="0" {% if request.args.get('payment') == '0' %}selected{% endif %}>Chưa thanh toán</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">Từ ngày</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ request.args.get('start_date', '') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">Đến ngày</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ request.args.get('end_date', '') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="search" class="form-label">Tìm kiếm</label>
+                        <input type="text" class="form-control" id="search" name="search" placeholder="Tên người dùng hoặc mã đơn hàng" value="{{ request.args.get('search', '') }}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="applyFilter">Áp dụng</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Apply filter
+        document.getElementById('applyFilter').addEventListener('click', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
+</script>
+{% endblock %}

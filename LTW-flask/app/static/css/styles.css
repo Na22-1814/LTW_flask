@@ -1,0 +1,358 @@
+/* Analytics styles */
+.stat-card {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-chart {
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 30px;
+}
+
+.chart-bar {
+    width: 7%;
+    background: linear-gradient(to top, #5caba1, #8dd3d8);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.3s ease;
+}
+
+.chart-bar:hover {
+    background: linear-gradient(to top, #4a8c84, #7bc0c5);
+}
+
+.chart-labels {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 0.5rem;
+}
+
+.chart-labels span {
+    font-size: 0.75rem;
+    color: #6c757d;
+}/* Dashboard styles */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.logo-small {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #5caba1;
+    text-decoration: none;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.sidebar-item {
+    margin-bottom: 0.25rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.sidebar-link i {
+    font-size: 1.2rem;
+    margin-right: 0.75rem;
+}
+
+.sidebar-link:hover {
+    background-color: #e9ecef;
+}
+
+.sidebar-item.active > .sidebar-link {
+    background-color: #e9ecef;
+    color: #5caba1;
+}
+
+.sidebar-submenu {
+    list-style: none;
+    padding-left: 3.2rem;
+}
+
+.sidebar-sublink {
+    display: block;
+    padding: 0.5rem 0;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.sidebar-sublink:hover, .sidebar-subitem.active .sidebar-sublink {
+    color: #5caba1;
+}
+
+.sidebar-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    background-color: #fff;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.status-badge.active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.draft {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.scheduled {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-badge.online {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.offline {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+.status-badge.banned {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Table styles */
+.table th {
+    font-weight: 600;
+    color: #495057;
+    border-top: none;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Tab styles */
+.nav-tabs .nav-link {
+    color: #495057;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: #5caba1;
+    border-bottom-color: #5caba1;
+    font-weight: 600;
+}/* Book listing with admin actions */
+.book-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.book-item {
+    flex: 1;
+    text-decoration: none;
+    color: #333;
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+.book-actions {
+    margin-top: auto;
+}/* Admin page styles */
+.forum-stats {
+    border-radius: 5px;
+    border: 1px solid #dee2e6 !important;
+}
+
+.upload-btn {
+    background-color: #8dd3d8;
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.upload-btn:hover {
+    background-color: #6bbbc1;
+}
+
+.admin-book-img {
+    max-width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}/* User page styles */
+.user-avatar {
+    max-width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+}
+
+.user-book-img {
+    max-width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.reload-btn {
+    background-color: #8dd3d8;
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.reload-btn:hover {
+    background-color: #6bbbc1;
+}/* Book detail page styles */
+.book-detail-cover {
+    max-width: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.book-title-large {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.action-btn {
+    background-color: #8dd3d8;
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background-color: #6bbbc1;
+}
+
+.related-book-img {
+    max-width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}/* Custom styles to augment Bootstrap */
+
+/* Login & Registration custom styles */
+.login-body {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.illustration-side {
+    background-color: #0a5959;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.illustration-img {
+    max-width: 90%;
+}
+
+.social-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+/* Custom header styles */
+.navbar-custom {
+    background-color: #5caba1 !important;
+}
+
+.navbar-brand {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* Book listing custom styles */
+.book-item {
+    text-decoration: none;
+    color: #333;
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+.book-item:hover {
+    transform: translateY(-5px);
+}
+
+.book-cover {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.book-title {
+    font-size: 1.2rem;
+    margin-top: 0.7rem;
+    color: #000;
+}
+
+.book-description, .book-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Category page custom styles */
+.category-item {
+    display: block;
+    text-decoration: none;
+    color: #333;
+    text-align: center;
+    padding: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.category-item:hover {
+    transform: translateY(-5px);
+}

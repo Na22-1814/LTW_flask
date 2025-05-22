@@ -1,0 +1,340 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Quản lý đánh giá - Admin - Aloha{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="m-0">Quản lý đánh giá</h2>
+    <div class="d-flex gap-2">
+        <a href="#" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+            <i class="bi bi-funnel"></i> Lọc
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" id="reviewTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">Tất cả đánh giá</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="published-tab" data-bs-toggle="tab" data-bs-target="#published" type="button" role="tab" aria-controls="published" aria-selected="false">Đã đăng</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="hidden-tab" data-bs-toggle="tab" data-bs-target="#hidden" type="button" role="tab" aria-controls="hidden" aria-selected="false">Đã ẩn</button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="reviewTabsContent">
+            <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Người dùng</th>
+                                <th>Sách</th>
+                                <th>Đánh giá</th>
+                                <th>Nhận xét</th>
+                                <th>Ngày đánh giá</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for review in reviews %}
+                                <tr>
+                                    <td>{{ review.user.Username }}</td>
+                                    <td>
+                                        <a href="{{ url_for('book.book_detail', book_id=review.book.BookID) }}" class="text-decoration-none">
+                                            {{ review.book.Title }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="text-warning">
+                                            {% for i in range(5) %}
+                                                {% if i < review.Rating %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-1 text-dark">{{ review.Rating }}/5</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ review.Comment|truncate(50) }}</td>
+                                    <td>{{ review.ReviewDate.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        {% if review.Status %}
+                                            <span class="status-badge active">Hiển thị</span>
+                                        {% else %}
+                                            <span class="status-badge draft">Ẩn</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal{{ review.ReviewID }}">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <form action="{{ url_for('admin.toggle_review', review_id=review.ReviewID) }}" method="post">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm {% if review.Status %}btn-warning{% else %}btn-success{% endif %}">
+                                                    <i class="bi {% if review.Status %}bi-eye-slash{% else %}bi-eye{% endif %}"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <!-- Review Detail Modal -->
+                                        <div class="modal fade" id="reviewModal{{ review.ReviewID }}" tabindex="-1" aria-labelledby="reviewModalLabel{{ review.ReviewID }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="reviewModalLabel{{ review.ReviewID }}">Chi tiết đánh giá</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="d-flex align-items-center mb-3">
+                                                            <div>
+                                                                <h6 class="mb-0">{{ review.user.Username }}</h6>
+                                                                <div class="text-warning">
+                                                                    {% for i in range(5) %}
+                                                                        {% if i < review.Rating %}
+                                                                            <i class="bi bi-star-fill"></i>
+                                                                        {% else %}
+                                                                            <i class="bi bi-star"></i>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                </div>
+                                                            </div>
+                                                            <div class="ms-auto text-muted">
+                                                                {{ review.ReviewDate.strftime('%d/%m/%Y %H:%M') }}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <h6>Sách: {{ review.book.Title }}</h6>
+                                                            <p class="text-muted small">Tác giả: {{ review.book.Author or 'Không có thông tin' }}</p>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <h6>Nhận xét:</h6>
+                                                            <p>{{ review.Comment }}</p>
+                                                        </div>
+
+                                                        <div class="mb-0">
+                                                            <h6>Trạng thái:</h6>
+                                                            {% if review.Status %}
+                                                                <span class="badge bg-success">Hiển thị</span>
+                                                            {% else %}
+                                                                <span class="badge bg-warning text-dark">Ẩn</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                        <form action="{{ url_for('admin.toggle_review', review_id=review.ReviewID) }}" method="post">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn {% if review.Status %}btn-warning{% else %}btn-success{% endif %}">
+                                                                {{ 'Ẩn đánh giá' if review.Status else 'Hiển thị đánh giá' }}
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">Chưa có đánh giá nào.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="published" role="tabpanel" aria-labelledby="published-tab">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Người dùng</th>
+                                <th>Sách</th>
+                                <th>Đánh giá</th>
+                                <th>Nhận xét</th>
+                                <th>Ngày đánh giá</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for review in reviews if review.Status %}
+                                <tr>
+                                    <td>{{ review.user.Username }}</td>
+                                    <td>
+                                        <a href="{{ url_for('book.book_detail', book_id=review.book.BookID) }}" class="text-decoration-none">
+                                            {{ review.book.Title }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="text-warning">
+                                            {% for i in range(5) %}
+                                                {% if i < review.Rating %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-1 text-dark">{{ review.Rating }}/5</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ review.Comment|truncate(50) }}</td>
+                                    <td>{{ review.ReviewDate.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        <span class="status-badge active">Hiển thị</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal{{ review.ReviewID }}">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <form action="{{ url_for('admin.toggle_review', review_id=review.ReviewID) }}" method="post">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-eye-slash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">Không có đánh giá nào đang hiển thị.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="hidden" role="tabpanel" aria-labelledby="hidden-tab">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Người dùng</th>
+                                <th>Sách</th>
+                                <th>Đánh giá</th>
+                                <th>Nhận xét</th>
+                                <th>Ngày đánh giá</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for review in reviews if not review.Status %}
+                                <tr>
+                                    <td>{{ review.user.Username }}</td>
+                                    <td>
+                                        <a href="{{ url_for('book.book_detail', book_id=review.book.BookID) }}" class="text-decoration-none">
+                                            {{ review.book.Title }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="text-warning">
+                                            {% for i in range(5) %}
+                                                {% if i < review.Rating %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-1 text-dark">{{ review.Rating }}/5</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ review.Comment|truncate(50) }}</td>
+                                    <td>{{ review.ReviewDate.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        <span class="status-badge draft">Ẩn</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal{{ review.ReviewID }}">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <form action="{{ url_for('admin.toggle_review', review_id=review.ReviewID) }}" method="post">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">Không có đánh giá nào đang bị ẩn.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Lọc đánh giá</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('admin.reviews') }}" method="get" id="filterForm">
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Đánh giá</label>
+                        <select class="form-select" id="rating" name="rating">
+                            <option value="">Tất cả đánh giá</option>
+                            <option value="5" {% if request.args.get('rating') == '5' %}selected{% endif %}>5 sao</option>
+                            <option value="4" {% if request.args.get('rating') == '4' %}selected{% endif %}>4 sao</option>
+                            <option value="3" {% if request.args.get('rating') == '3' %}selected{% endif %}>3 sao</option>
+                            <option value="2" {% if request.args.get('rating') == '2' %}selected{% endif %}>2 sao</option>
+                            <option value="1" {% if request.args.get('rating') == '1' %}selected{% endif %}>1 sao</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Trạng thái</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="1" {% if request.args.get('status') == '1' %}selected{% endif %}>Hiển thị</option>
+                            <option value="0" {% if request.args.get('status') == '0' %}selected{% endif %}>Ẩn</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="search" class="form-label">Tìm kiếm</label>
+                        <input type="text" class="form-control" id="search" name="search" placeholder="Tên người dùng hoặc tên sách" value="{{ request.args.get('search', '') }}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="applyFilter">Áp dụng</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Apply filter
+        document.getElementById('applyFilter').addEventListener('click', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
+</script>
+{% endblock %}

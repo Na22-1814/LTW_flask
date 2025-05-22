@@ -1,0 +1,243 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}{{ 'Thêm sách mới' if not book else 'Sửa sách' }} - Admin - Aloha{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preview-image {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .required-label::after {
+        content: ' *';
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="m-0">{{ 'Thêm sách mới' if not book else 'Sửa sách' }}</h2>
+    <a href="{{ url_for('admin.books') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+            {{ form.csrf_token }}
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <label for="{{ form.title.id }}" class="form-label required-label">Tiêu đề</label>
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.author.id }}" class="form-label">Tác giả</label>
+                                {{ form.author(class="form-control" + (" is-invalid" if form.author.errors else "")) }}
+                                {% if form.author.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.author.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.publisher.id }}" class="form-label">Nhà xuất bản</label>
+                                {{ form.publisher(class="form-control" + (" is-invalid" if form.publisher.errors else "")) }}
+                                {% if form.publisher.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.publisher.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.publish_year.id }}" class="form-label">Năm xuất bản</label>
+                                {{ form.publish_year(class="form-control" + (" is-invalid" if form.publish_year.errors else "")) }}
+                                {% if form.publish_year.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.publish_year.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.category.id }}" class="form-label required-label">Thể loại</label>
+                                {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else "")) }}
+                                {% if form.category.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.category.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.price.id }}" class="form-label required-label">Giá</label>
+                                <div class="input-group">
+                                    {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else "")) }}
+                                    <span class="input-group-text">VND</span>
+                                    {% if form.price.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.price.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.page_count.id }}" class="form-label">Số trang</label>
+                                {{ form.page_count(class="form-control" + (" is-invalid" if form.page_count.errors else "")) }}
+                                {% if form.page_count.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.page_count.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.description.id }}" class="form-label">Mô tả</label>
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=5) }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.cover_image.id }}" class="form-label">Ảnh bìa</label>
+                        {{ form.cover_image(class="form-control" + (" is-invalid" if form.cover_image.errors else ""), onchange="previewImage(this)") }}
+                        {% if form.cover_image.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.cover_image.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-2">
+                            {% if book and book.CoverImage %}
+                                <div id="current-image" class="mb-2">
+                                    <img src="{{ book.CoverImage }}" alt="Ảnh bìa hiện tại" class="preview-image">
+                                    <p class="small text-muted mt-1">Ảnh bìa hiện tại</p>
+                                </div>
+                            {% endif %}
+                            <div id="image-preview" class="mt-2" style="display: none;">
+                                <img src="#" alt="Xem trước ảnh bìa" class="preview-image">
+                                <p class="small text-muted mt-1">Ảnh bìa mới</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mt-4">
+                        <label for="{{ form.book_file.id }}" class="form-label {{ 'required-label' if not book else '' }}">File sách (PDF)</label>
+                        {{ form.book_file(class="form-control" + (" is-invalid" if form.book_file.errors else "")) }}
+                        {% if form.book_file.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.book_file.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        {% if book and book.FilePath %}
+                            <div class="mt-2">
+                                <p class="small text-muted">File hiện tại: <a href="{{ book.FilePath }}" target="_blank" class="text-decoration-none">Xem file</a></p>
+                                <p class="small text-info">Chỉ tải lên file mới nếu bạn muốn thay thế file hiện tại.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-check form-switch mt-4">
+                        {{ form.status(class="form-check-input") }}
+                        <label class="form-check-label" for="{{ form.status.id }}">Hiển thị sách</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 d-flex justify-content-end">
+                <a href="{{ url_for('admin.books') }}" class="btn btn-secondary me-2">Hủy</a>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewImage(input) {
+        const preview = document.getElementById('image-preview');
+        const currentImage = document.getElementById('current-image');
+        const previewImg = preview.querySelector('img');
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                preview.style.display = 'block';
+                
+                if (currentImage) {
+                    currentImage.style.display = 'none';
+                }
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.style.display = 'none';
+            
+            if (currentImage) {
+                currentImage.style.display = 'block';
+            }
+        }
+    }
+</script>
+{% endblock %}

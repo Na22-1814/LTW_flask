@@ -1,0 +1,204 @@
+{% extends 'layout.html' %}
+
+{% block title %}{{ book.Title }} - Aloha{% endblock %}
+
+{% block main_content %}
+<div class="row">
+    <!-- Book cover -->
+    <div class="col-md-5">
+        {% if book.CoverImage %}
+            <img src="{{ book.CoverImage }}" alt="{{ book.Title }} Book Cover" class="img-fluid book-detail-cover">
+        {% else %}
+            <img src="{{ url_for('static', filename='img/book_b.png') }}" alt="{{ book.Title }} Book Cover" class="img-fluid book-detail-cover">
+        {% endif %}
+    </div>
+    
+    <!-- Book details -->
+    <div class="col-md-7">
+        <h1 class="book-title-large mb-4">{{ book.Title }}</h1>
+        
+        <div class="mb-4">
+            <p class="text-muted mb-1"><strong>Tác giả:</strong> {{ book.Author or 'Không có thông tin' }}</p>
+            <p class="text-muted mb-1"><strong>Nhà xuất bản:</strong> {{ book.Publisher or 'Không có thông tin' }}</p>
+            <p class="text-muted mb-1"><strong>Năm xuất bản:</strong> {{ book.PublishYear or 'Không có thông tin' }}</p>
+            <p class="text-muted mb-1"><strong>Thể loại:</strong> {{ book.category.CategoryName }}</p>
+            <p class="text-muted mb-1"><strong>Số trang:</strong> {{ book.PageCount or 'Không có thông tin' }}</p>
+            <p class="text-muted mb-3"><strong>Giá:</strong> {{ '{:,.0f}'.format(book.Price) }} VND</p>
+        </div>
+        
+        <div class="mb-4">
+            <h5>Mô tả</h5>
+            <p>{{ book.Description or 'Sách ' + book.Title }}</p>
+        </div>
+        
+        <!-- Reviews summary -->
+        <div class="mb-4">
+            <h5>Đánh giá</h5>
+            {% if reviews %}
+                {% set avg_rating = (reviews|sum(attribute='Rating') / reviews|length)|round(1) %}
+                <div class="mb-2">
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">
+                            <span class="fs-4 fw-bold">{{ avg_rating }}</span>
+                            <span class="text-muted">/5</span>
+                        </div>
+                        <div>
+                            {% for i in range(5) %}
+                                {% if i < avg_rating|int %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                {% elif i < avg_rating|round|int %}
+                                    <i class="bi bi-star-half text-warning"></i>
+                                {% else %}
+                                    <i class="bi bi-star text-warning"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="text-muted ms-2">({{ reviews|length }} đánh giá)</span>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted">Chưa có đánh giá nào.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Action buttons -->
+        <div class="d-flex gap-3">
+            {% if current_user.is_authenticated %}
+                <!-- Check if user has purchased the book -->
+                {% set has_purchased = false %}
+                {% for order in current_user.orders %}
+                    {% if order.PaymentStatus %}
+                        {% for detail in order.order_details %}
+                            {% if detail.BookID == book.BookID %}
+                                {% set has_purchased = true %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if has_purchased %}
+                    <a href="{{ url_for('user.download_book', order_detail_id=detail.OrderDetailID) }}" class="btn btn-success py-2 px-4">
+                        <i class="bi bi-download me-1"></i> Tải sách
+                    </a>
+                    
+                    <!-- Add review button if user has purchased -->
+                    {% set has_reviewed = false %}
+                    {% for review in reviews %}
+                        {% if review.UserID == current_user.UserID %}
+                            {% set has_reviewed = true %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if not has_reviewed %}
+                        <a href="{{ url_for('book.add_review', book_id=book.BookID) }}" class="btn btn-outline-primary py-2 px-4">
+                            <i class="bi bi-star me-1"></i> Viết đánh giá
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('user.buy_book', book_id=book.BookID) }}" class="btn btn-info text-dark action-btn py-2 px-4">
+                        <i class="bi bi-cart-plus me-1"></i> Mua sách
+                    </a>
+                {% endif %}
+                
+                {% if current_user.is_admin() %}
+                    <a href="{{ url_for('admin.edit_book', book_id=book.BookID) }}" class="btn btn-warning py-2 px-4">
+                        <i class="bi bi-pencil me-1"></i> Sửa
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('auth.login', next=url_for('user.buy_book', book_id=book.BookID)) }}" class="btn btn-info text-dark action-btn py-2 px-4">
+                    <i class="bi bi-cart-plus me-1"></i> Mua sách
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Reviews section -->
+{% if reviews %}
+    <div class="mt-5">
+        <h3 class="mb-4">Đánh giá từ người dùng</h3>
+        
+        {% for review in reviews %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <h5 class="card-title mb-0">{{ review.user.Username }}</h5>
+                            <div class="text-warning">
+                                {% for i in range(5) %}
+                                    {% if i < review.Rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="text-muted small">{{ review.ReviewDate.strftime('%d/%m/%Y') }}</div>
+                    </div>
+                    <p class="card-text">{{ review.Comment }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Related books section -->
+{% if related_books %}
+    <div class="mt-5">
+        <h3 class="mb-4">Sách cùng thể loại</h3>
+        
+        {% for related_book in related_books %}
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    {% if related_book.CoverImage %}
+                        <img src="{{ related_book.CoverImage }}" alt="{{ related_book.Title }}" class="img-fluid related-book-img">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/book_b.png') }}" alt="{{ related_book.Title }}" class="img-fluid related-book-img">
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h4>{{ related_book.Title }}</h4>
+                    <p class="text-muted">{{ related_book.Description|truncate(150) or 'Sách ' + related_book.Title }}</p>
+                    <p class="text-muted mb-0"><strong>Tác giả:</strong> {{ related_book.Author or 'Không có thông tin' }}</p>
+                    <p class="text-muted"><strong>Giá:</strong> {{ '{:,.0f}'.format(related_book.Price) }} VND</p>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('book.book_detail', book_id=related_book.BookID) }}" class="btn btn-outline-primary py-2">Xem sách</a>
+                        
+                        {% if current_user.is_authenticated %}
+                            <!-- Check if user has purchased the related book -->
+                            {% set has_purchased = false %}
+                            {% for order in current_user.orders %}
+                                {% if order.PaymentStatus %}
+                                    {% for detail in order.order_details %}
+                                        {% if detail.BookID == related_book.BookID %}
+                                            {% set has_purchased = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if has_purchased %}
+                                <a href="{{ url_for('user.download_book', order_detail_id=detail.OrderDetailID) }}" class="btn btn-success py-2">
+                                    <i class="bi bi-download me-1"></i> Tải về
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('user.buy_book', book_id=related_book.BookID) }}" class="btn btn-info text-dark action-btn py-2">
+                                    <i class="bi bi-cart-plus me-1"></i> Mua sách
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('auth.login', next=url_for('user.buy_book', book_id=related_book.BookID)) }}" class="btn btn-info text-dark action-btn py-2">
+                                <i class="bi bi-cart-plus me-1"></i> Mua sách
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

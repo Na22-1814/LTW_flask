@@ -1,0 +1,95 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Quản lý thể loại - Admin - Aloha{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="m-0">Danh sách thể loại</h2>
+    <a href="{{ url_for('admin.add_category') }}" class="btn btn-primary">
+        <i class="bi bi-plus"></i> Thêm thể loại mới
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="5%">#</th>
+                        <th width="25%">Tên thể loại</th>
+                        <th width="30%">Mô tả</th>
+                        <th width="15%">Thể loại cha</th>
+                        <th width="10%">Trạng thái</th>
+                        <th width="15%">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                        <tr>
+                            <td>{{ category.CategoryID }}</td>
+                            <td>{{ category.CategoryName }}</td>
+                            <td>{{ category.Description or 'Không có mô tả' }}</td>
+                            <td>
+                                {% if category.parent %}
+                                    {{ category.parent.CategoryName }}
+                                {% else %}
+                                    <span class="text-muted">Không có</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if category.Status %}
+                                    <span class="status-badge active">Hoạt động</span>
+                                {% else %}
+                                    <span class="status-badge draft">Ẩn</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('book.category_books', category_id=category.CategoryID) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin.edit_category', category_id=category.CategoryID) }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <!-- Delete button with confirmation -->
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ category.CategoryID }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" id="deleteModal{{ category.CategoryID }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ category.CategoryID }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ category.CategoryID }}">Xác nhận xóa</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Bạn có chắc chắn muốn xóa thể loại <strong>{{ category.CategoryName }}</strong>?</p>
+                                                    <p class="text-danger">Hành động này không thể hoàn tác.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                    <form action="{{ url_for('admin.delete_category', category_id=category.CategoryID) }}" method="post">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-danger">Xóa</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">Chưa có thể loại nào. Hãy thêm thể loại mới!</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

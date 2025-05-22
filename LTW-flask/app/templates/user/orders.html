@@ -1,0 +1,183 @@
+{% extends 'layout.html' %}
+
+{% block title %}Đơn hàng của tôi - Aloha{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0">Đơn hàng của tôi</h1>
+    <a href="{{ url_for('book.new_books') }}" class="btn btn-primary">
+        <i class="bi bi-cart-plus me-1"></i> Mua thêm sách
+    </a>
+</div>
+
+{% if orders %}
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="orderTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">Tất cả</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab" aria-controls="completed" aria-selected="false">Hoàn thành</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="false">Đang xử lý</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="orderTabsContent">
+                <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Phương thức</th>
+                                    <th>Trạng thái thanh toán</th>
+                                    <th>Trạng thái đơn hàng</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                    <tr>
+                                        <td>#{{ order.OrderID }}</td>
+                                        <td>{{ order.OrderDate.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ '{:,.0f}'.format(order.TotalAmount) }} VND</td>
+                                        <td>{{ order.PaymentMethod }}</td>
+                                        <td>
+                                            {% if order.PaymentStatus %}
+                                                <span class="badge bg-success">Đã thanh toán</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if order.OrderStatus == 'Hoàn thành' %}
+                                                <span class="badge bg-success">{{ order.OrderStatus }}</span>
+                                            {% elif order.OrderStatus == 'Chờ thanh toán' %}
+                                                <span class="badge bg-warning text-dark">{{ order.OrderStatus }}</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">{{ order.OrderStatus }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('user.order_detail', order_id=order.OrderID) }}" class="btn btn-sm btn-primary">Chi tiết</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Phương thức</th>
+                                    <th>Trạng thái thanh toán</th>
+                                    <th>Trạng thái đơn hàng</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders if order.OrderStatus == 'Hoàn thành' %}
+                                    <tr>
+                                        <td>#{{ order.OrderID }}</td>
+                                        <td>{{ order.OrderDate.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ '{:,.0f}'.format(order.TotalAmount) }} VND</td>
+                                        <td>{{ order.PaymentMethod }}</td>
+                                        <td>
+                                            {% if order.PaymentStatus %}
+                                                <span class="badge bg-success">Đã thanh toán</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">{{ order.OrderStatus }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('user.order_detail', order_id=order.OrderID) }}" class="btn btn-sm btn-primary">Chi tiết</a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-3">Không có đơn hàng hoàn thành</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Phương thức</th>
+                                    <th>Trạng thái thanh toán</th>
+                                    <th>Trạng thái đơn hàng</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders if order.OrderStatus != 'Hoàn thành' %}
+                                    <tr>
+                                        <td>#{{ order.OrderID }}</td>
+                                        <td>{{ order.OrderDate.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ '{:,.0f}'.format(order.TotalAmount) }} VND</td>
+                                        <td>{{ order.PaymentMethod }}</td>
+                                        <td>
+                                            {% if order.PaymentStatus %}
+                                                <span class="badge bg-success">Đã thanh toán</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if order.OrderStatus == 'Chờ thanh toán' %}
+                                                <span class="badge bg-warning text-dark">{{ order.OrderStatus }}</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">{{ order.OrderStatus }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('user.order_detail', order_id=order.OrderID) }}" class="btn btn-sm btn-primary">Chi tiết</a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-3">Không có đơn hàng đang xử lý</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-bag-x display-1 text-muted mb-3"></i>
+            <h3>Bạn chưa có đơn hàng nào</h3>
+            <p class="text-muted mb-4">Hãy khám phá và mua sách để bắt đầu hành trình đọc sách của bạn.</p>
+            <a href="{{ url_for('book.new_books') }}" class="btn btn-primary">
+                <i class="bi bi-book me-1"></i> Khám phá sách ngay
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

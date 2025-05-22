@@ -1,0 +1,175 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Dashboard - Admin - Aloha{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Thống kê</h2>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Tổng số sách</h5>
+                <h2 class="card-text">{{ book_count }}</h2>
+                <p class="card-text text-success mb-0"><i class="bi bi-arrow-up"></i> Cập nhật mới nhất</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Tổng số người dùng</h5>
+                <h2 class="card-text">{{ user_count }}</h2>
+                <p class="card-text text-success mb-0"><i class="bi bi-arrow-up"></i> Thống kê hiện tại</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Đơn hàng</h5>
+                <h2 class="card-text">{{ order_count }}</h2>
+                <p class="card-text text-success mb-0"><i class="bi bi-arrow-up"></i> Tổng số đơn hàng</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Lượt tải</h5>
+                <h2 class="card-text">{{ download_count }}</h2>
+                <p class="card-text text-success mb-0"><i class="bi bi-arrow-up"></i> Số lượt tải sách</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Lượt tải hàng tháng</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ 2025 }}
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="#">{{ 2025 }}</a></li>
+                        <li><a class="dropdown-item" href="#">{{ 2024 }}</a></li>
+                        <li><a class="dropdown-item" href="#">{{ 2023 }}</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 300px; position: relative;">
+                    <div class="placeholder-chart">
+                        {% set max_downloads = monthly_downloads|max if monthly_downloads else 0 %}
+{% for count in monthly_downloads %}
+    <div class="chart-bar" style="height: {{ count / max_downloads * 100 if max_downloads > 0 else 0 }}%;"></div>
+                        {% endfor %}
+                    </div>
+                    <div class="chart-labels">
+                        <span>Tháng 1</span>
+                        <span>Tháng 2</span>
+                        <span>Tháng 3</span>
+                        <span>Tháng 4</span>
+                        <span>Tháng 5</span>
+                        <span>Tháng 6</span>
+                        <span>Tháng 7</span>
+                        <span>Tháng 8</span>
+                        <span>Tháng 9</span>
+                        <span>Tháng 10</span>
+                        <span>Tháng 11</span>
+                        <span>Tháng 12</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Thể loại phổ biến</h5>
+            </div>
+            <div class="card-body">
+                {% for category in top_categories %}
+                    <div class="category-item d-flex justify-content-between mb-3">
+                        <span>{{ category.CategoryName }}</span>
+                        <span class="text-primary">{{ (category.book_count / book_count * 100)|round|int }}%</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 5px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ (category.book_count / book_count * 100)|round|int }}%;" aria-valuenow="{{ (category.book_count / book_count * 100)|round|int }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Đơn hàng gần đây</h5>
+                <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-primary">Xem tất cả</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Người dùng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái thanh toán</th>
+                                <th>Trạng thái đơn hàng</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td>#{{ order.OrderID }}</td>
+                                    <td>{{ order.user.Username }}</td>
+                                    <td>{{ order.OrderDate.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ '{:,.0f}'.format(order.TotalAmount) }} VND</td>
+                                    <td>
+                                        {% if order.PaymentStatus %}
+                                            <span class="badge bg-success">Đã thanh toán</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if order.OrderStatus == 'Hoàn thành' %}
+                                            <span class="badge bg-success">{{ order.OrderStatus }}</span>
+                                        {% elif order.OrderStatus == 'Chờ thanh toán' %}
+                                            <span class="badge bg-warning text-dark">{{ order.OrderStatus }}</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">{{ order.OrderStatus }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin.order_detail', order_id=order.OrderID) }}" class="btn btn-sm btn-primary">Chi tiết</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add current date to template context
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        // You would typically handle this in the backend
+    });
+</script>
+{% endblock %}

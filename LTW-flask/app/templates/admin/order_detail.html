@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+{% extends 'admin/layout.html' %}
+
+{% block title %}Chi tiết đơn hàng #{{ order.OrderID }} - Admin - Aloha{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="m-0">Chi tiết đơn hàng #{{ order.OrderID }}</h2>
+    <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Thông tin đơn hàng</h5>
+                <div>
+                    {% if order.OrderStatus == 'Hoàn thành' %}
+                        <span class="badge bg-success">{{ order.OrderStatus }}</span>
+                    {% elif order.OrderStatus == 'Chờ thanh toán' %}
+                        <span class="badge bg-warning text-dark">{{ order.OrderStatus }}</span>
+                    {% else %}
+                        <span class="badge bg-primary">{{ order.OrderStatus }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5">Mã đơn hàng:</dt>
+                            <dd class="col-sm-7">#{{ order.OrderID }}</dd>
+
+                            <dt class="col-sm-5">Khách hàng:</dt>
+                            <dd class="col-sm-7">
+                                <a href="{{ url_for('admin.edit_user', user_id=order.user.UserID) }}">
+                                    {{ order.user.Username }}
+                                </a>
+                            </dd>
+
+                            <dt class="col-sm-5">Email:</dt>
+                            <dd class="col-sm-7">{{ order.user.Email }}</dd>
+
+                            <dt class="col-sm-5">Số điện thoại:</dt>
+                            <dd class="col-sm-7">{{ order.user.PhoneNumber or 'Chưa cập nhật' }}</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-6">Ngày đặt hàng:</dt>
+                            <dd class="col-sm-6">{{ order.OrderDate.strftime('%d/%m/%Y %H:%M') }}</dd>
+
+                            <dt class="col-sm-6">Phương thức thanh toán:</dt>
+                            <dd class="col-sm-6">{{ order.PaymentMethod }}</dd>
+
+                            <dt class="col-sm-6">Trạng thái thanh toán:</dt>
+                            <dd class="col-sm-6">
+                                {% if order.PaymentStatus %}
+                                    <span class="badge bg-success">Đã thanh toán</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-6">Tổng tiền:</dt>
+                            <dd class="col-sm-6 fw-bold">{{ '{:,.0f}'.format(order.TotalAmount) }} VND</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Sách đã mua</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Sách</th>
+                                <th>Giá</th>
+                                <th>Trạng thái tải</th>
+                                <th>Ngày tải</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detail in order_details %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-3">
+                                                {% if detail.book.CoverImage %}
+                                                    <img src="{{ detail.book.CoverImage }}" alt="{{ detail.book.Title }}" width="50" height="70" class="img-thumbnail">
+                                                {% else %}
+                                                    <img src="{{ url_for('static', filename='img/book1.png') }}" alt="{{ detail.book.Title }}" width="50" height="70" class="img-thumbnail">
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <a href="{{ url_for('book.book_detail', book_id=detail.book.BookID) }}" class="text-decoration-none">
+                                                    {{ detail.book.Title }}
+                                                </a>
+                                                <p class="text-muted mb-0 small">{{ detail.book.Author or 'Không có thông tin' }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ '{:,.0f}'.format(detail.Price) }} VND</td>
+                                    <td>
+                                        {% if detail.DownloadStatus %}
+                                            <span class="badge bg-success">Đã tải</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Chưa tải</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if detail.DownloadDate %}
+                                            {{ detail.DownloadDate.strftime('%d/%m/%Y %H:%M') }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Cập nhật trạng thái</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('admin.update_order', order_id=order.OrderID) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Trạng thái đơn hàng</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="Chờ thanh toán" {% if order.OrderStatus == 'Chờ thanh toán' %}selected{% endif %}>Chờ thanh toán</option>
+                            <option value="Chờ xác nhận" {% if order.OrderStatus == 'Chờ xác nhận' %}selected{% endif %}>Chờ xác nhận</option>
+                            <option value="Hoàn thành" {% if order.OrderStatus == 'Hoàn thành' %}selected{% endif %}>Hoàn thành</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-block">Trạng thái thanh toán</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="payment_status" id="payment_status_paid" value="true" {% if order.PaymentStatus %}checked{% endif %}>
+                            <label class="form-check-label" for="payment_status_paid">Đã thanh toán</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="payment_status" id="payment_status_unpaid" value="false" {% if not order.PaymentStatus %}checked{% endif %}>
+                            <label class="form-check-label" for="payment_status_unpaid">Chưa thanh toán</label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Giao dịch thanh toán</h5>
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                    <div class="list-group list-group-flush">
+                        {% for transaction in transactions %}
+                            <div class="list-group-item px-0 border-0">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold">{{ transaction.PaymentMethod }}</span>
+                                    <span class="badge {% if transaction.Status == 'Thành công' %}bg-success{% elif transaction.Status == 'Đang xử lý' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ transaction.Status }}</span>
+                                </div>
+                                <p class="text-muted mb-1">Mã giao dịch: {{ transaction.TransactionCode }}</p>
+                                <p class="text-muted mb-1">Ngày giao dịch: {{ transaction.TransactionDate.strftime('%d/%m/%Y %H:%M') }}</p>
+                                <p class="fw-bold mb-0">Số tiền: {{ '{:,.0f}'.format(transaction.Amount) }} VND</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="mb-0 text-muted">Không có thông tin giao dịch.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

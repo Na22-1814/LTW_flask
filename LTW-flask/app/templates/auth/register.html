@@ -1,0 +1,106 @@
+{% extends 'layout.html' %}
+
+{% block title %}Đăng Ký - Aloha{% endblock %}
+
+{% block body_class %} class="login-body"{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <!-- Left side with illustration -->
+        <div class="col-md-6 p-0 illustration-side">
+            <img src="{{ url_for('static', filename='img/img_login.png') }}" alt="Login Illustration" class="illustration-img">
+        </div>
+        
+        <!-- Right side with form -->
+        <div class="col-md-6 d-flex align-items-center justify-content-center bg-white">
+            <div class="p-4" style="width: 80%; max-width: 400px;">
+                <h1 class="mb-4 fw-bold">Đăng Ký</h1>
+                
+                <!-- Display flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Social login buttons -->
+                <div class="d-flex mb-3 gap-3">
+                    <button class="btn btn-outline-secondary flex-grow-1 d-flex align-items-center justify-content-center">
+                        <img src="{{ url_for('static', filename='img/fb.png') }}" alt="Facebook icon" class="social-icon"> Facebook
+                    </button>
+                    <button class="btn btn-outline-secondary flex-grow-1 d-flex align-items-center justify-content-center">
+                        <img src="{{ url_for('static', filename='img/gg.png') }}" alt="Google icon" class="social-icon"> Google
+                    </button>
+                </div>
+                
+                <div class="text-center text-muted my-4">hoặc</div>
+                
+                <!-- Registration form -->
+                <form method="POST" action="{{ url_for('auth.register') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Tên tài khoản") }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Email") }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Mật khẩu") }}
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), placeholder="Xác nhận mật khẩu") }}
+                        {% if form.confirm_password.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.confirm_password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {{ form.submit(class="btn w-100 py-2", style="background-color: #8dd3d8;") }}
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>Đã có tài khoản? <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Đăng nhập</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'layout.html' %}
+
+{% block title %}{{ category.CategoryName }} - Aloha{% endblock %}
+
+{% block main_content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('book.index') }}">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('book.categories') }}">Thể loại</a></li>
+        {% if category.parent %}
+            <li class="breadcrumb-item"><a href="{{ url_for('book.category_books', category_id=category.parent.CategoryID) }}">{{ category.parent.CategoryName }}</a></li>
+        {% endif %}
+        <li class="breadcrumb-item active" aria-current="page">{{ category.CategoryName }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0">{{ category.CategoryName }}</h1>
+    
+    {% if category.Description %}
+        <span class="text-muted">{{ category.Description }}</span>
+    {% endif %}
+</div>
+
+<!-- Subcategories -->
+{% if subcategories %}
+    <div class="mb-4">
+        <h2 class="h4 mb-3">Thể loại con</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for subcat in subcategories %}
+                <div class="col">
+                    <a href="{{ url_for('book.category_books', category_id=subcat.CategoryID) }}" class="category-item card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="bi bi-book display-4 text-primary"></i>
+                            </div>
+                            <h3 class="h5 card-title">{{ subcat.CategoryName }}</h3>
+                            {% if subcat.Description %}
+                                <p class="card-text small text-muted">{{ subcat.Description|truncate(60) }}</p>
+                            {% endif %}
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+<!-- Books in this category -->
+<div class="mb-4">
+    <h2 class="h4 mb-3">Sách trong thể loại này</h2>
+    
+    {% if books %}
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for book in books %}
+                <div class="col">
+                    <a href="{{ url_for('book.book_detail', book_id=book.BookID) }}" class="book-item">
+                        {% if book.CoverImage %}
+                            <img src="{{ book.CoverImage }}" alt="{{ book.Title }}" class="book-cover img-fluid">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/book1.png') }}" alt="{{ book.Title }}" class="book-cover img-fluid">
+                        {% endif %}
+                        <h3 class="book-title h5 mt-3">{{ book.Title }}</h3>
+                        <p class="book-description">{{ book.Description|truncate(100) or 'Không có mô tả' }}</p>
+                        <p class="book-date small">{{ book.AddedDate.strftime('%d/%m/%Y') }}</p>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p class="mb-0">Chưa có sách nào trong thể loại này.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

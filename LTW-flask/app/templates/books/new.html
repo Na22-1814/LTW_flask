@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block title %}Sách mới - Aloha{% endblock %}
+
+{% block main_content %}
+<h1 class="mb-4">Sách mới</h1>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for book in books %}
+        <div class="col">
+            <a href="{{ url_for('book.book_detail', book_id=book.BookID) }}" class="book-item">
+                {% if book.CoverImage %}
+                    <img src="{{ book.CoverImage }}" alt="{{ book.Title }}" class="book-cover img-fluid">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/book1.png') }}" alt="{{ book.Title }}" class="book-cover img-fluid">
+                {% endif %}
+                <h2 class="book-title h5 mt-3">{{ book.Title }}</h2>
+                <p class="book-description">{{ book.Description|truncate(100) or 'Không có mô tả' }}</p>
+                <p class="book-date small">{{ book.AddedDate.strftime('%d/%m/%Y') }}</p>
+            </a>
+        </div>
+    {% else %}
+        <div class="col-12 text-center py-5">
+            <p>Chưa có sách nào. Hãy quay lại sau!</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

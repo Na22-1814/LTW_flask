@@ -1,0 +1,153 @@
+{% extends 'layout.html' %}
+
+{% block title %}Chi tiết đơn hàng #{{ order.OrderID }} - Aloha{% endblock %}
+
+{% block main_content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('book.index') }}">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('user.orders') }}">Đơn hàng của tôi</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Đơn hàng #{{ order.OrderID }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0">Chi tiết đơn hàng #{{ order.OrderID }}</h1>
+    <a href="{{ url_for('user.orders') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Sách đã mua</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for detail in order_details %}
+                        <div class="list-group-item">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0 me-3">
+                                    {% if detail.book.CoverImage %}
+                                        <img src="{{ detail.book.CoverImage }}" alt="{{ detail.book.Title }}" class="img-thumbnail" style="width: 80px;">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='img/book1.png') }}" alt="{{ detail.book.Title }}" class="img-thumbnail" style="width: 80px;">
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="mb-1">{{ detail.book.Title }}</h5>
+                                        <span class="text-primary fw-bold">{{ '{:,.0f}'.format(detail.Price) }} VND</span>
+                                    </div>
+                                    <p class="text-muted mb-1">Tác giả: {{ detail.book.Author or 'Không có thông tin' }}</p>
+                                    <p class="text-muted mb-1">Thể loại: {{ detail.book.category.CategoryName }}</p>
+                                    
+                                    {% if order.PaymentStatus %}
+                                        <div class="mt-2">
+                                            {% if detail.DownloadStatus %}
+                                                <div class="d-flex align-items-center text-success">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                                    <span>Đã tải lúc {{ detail.DownloadDate.strftime('%d/%m/%Y %H:%M') }}</span>
+                                                </div>
+                                                <a href="{{ url_for('user.download_book', order_detail_id=detail.OrderDetailID) }}" class="btn btn-success btn-sm mt-2">
+                                                    <i class="bi bi-download me-1"></i> Tải lại
+                                                </a>
+                                            {% else %}
+                                                <a href="{{ url_for('user.download_book', order_detail_id=detail.OrderDetailID) }}" class="btn btn-primary btn-sm">
+                                                    <i class="bi bi-download me-1"></i> Tải về
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Thông tin đơn hàng</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">Mã đơn hàng:</dt>
+                    <dd class="col-sm-6">#{{ order.OrderID }}</dd>
+                    
+                    <dt class="col-sm-6">Ngày đặt:</dt>
+                    <dd class="col-sm-6">{{ order.OrderDate.strftime('%d/%m/%Y %H:%M') }}</dd>
+                    
+                    <dt class="col-sm-6">Trạng thái đơn hàng:</dt>
+                    <dd class="col-sm-6">
+                        {% if order.OrderStatus == 'Hoàn thành' %}
+                            <span class="badge bg-success">{{ order.OrderStatus }}</span>
+                        {% elif order.OrderStatus == 'Chờ thanh toán' %}
+                            <span class="badge bg-warning text-dark">{{ order.OrderStatus }}</span>
+                        {% else %}
+                            <span class="badge bg-primary">{{ order.OrderStatus }}</span>
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-6">Trạng thái thanh toán:</dt>
+                    <dd class="col-sm-6">
+                        {% if order.PaymentStatus %}
+                            <span class="badge bg-success">Đã thanh toán</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-6">Phương thức thanh toán:</dt>
+                    <dd class="col-sm-6">{{ order.PaymentMethod }}</dd>
+                    
+                    <dt class="col-sm-6">Tổng tiền:</dt>
+                    <dd class="col-sm-6 fw-bold fs-5">{{ '{:,.0f}'.format(order.TotalAmount) }} VND</dd>
+                </dl>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Giao dịch thanh toán</h5>
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                    <div class="list-group list-group-flush">
+                        {% for transaction in transactions %}
+                            <div class="list-group-item px-0 border-0">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold">{{ transaction.PaymentMethod }}</span>
+                                    <span class="badge {% if transaction.Status == 'Thành công' %}bg-success{% elif transaction.Status == 'Đang xử lý' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ transaction.Status }}</span>
+                                </div>
+                                <p class="text-muted mb-1">Mã giao dịch: {{ transaction.TransactionCode }}</p>
+                                <p class="text-muted mb-1">Ngày giao dịch: {{ transaction.TransactionDate.strftime('%d/%m/%Y %H:%M') }}</p>
+                                <p class="fw-bold mb-0">Số tiền: {{ '{:,.0f}'.format(transaction.Amount) }} VND</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="mb-0 text-muted">Không có thông tin giao dịch.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if not order.PaymentStatus %}
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Thanh toán</h5>
+                </div>
+                <div class="card-body">
+                    <p>Đơn hàng này chưa được thanh toán. Vui lòng thanh toán để tải sách.</p>
+                    <a href="#" class="btn btn-primary w-100">Thanh toán ngay</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

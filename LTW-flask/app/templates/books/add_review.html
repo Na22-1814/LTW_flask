@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block title %}Kết quả tìm kiếm: {{ query }} - Aloha{% endblock %}
+
+{% block main_content %}
+<h1 class="mb-4">Kết quả tìm kiếm: "{{ query }}"</h1>
+
+{% if books %}
+    <p class="text-muted mb-4">Tìm thấy {{ books|length }} sách phù hợp</p>
+    
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for book in books %}
+            <div class="col">
+                <a href="{{ url_for('book.book_detail', book_id=book.BookID) }}" class="book-item">
+                    {% if book.CoverImage %}
+                        <img src="{{ book.CoverImage }}" alt="{{ book.Title }}" class="book-cover img-fluid">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/book1.png') }}" alt="{{ book.Title }}" class="book-cover img-fluid">
+                    {% endif %}
+                    <h2 class="book-title h5 mt-3">{{ book.Title }}</h2>
+                    <p class="text-muted mb-1">Tác giả: {{ book.Author or 'Không có thông tin' }}</p>
+                    <p class="text-muted mb-1">Thể loại: {{ book.category.CategoryName }}</p>
+                    <p class="book-description">{{ book.Description|truncate(100) or 'Không có mô tả' }}</p>
+                    <p class="fs-5 fw-bold">{{ '{:,.0f}'.format(book.Price) }} VND</p>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <p class="mb-0">Không tìm thấy sách phù hợp với từ khóa "{{ query }}".</p>
+    </div>
+    
+    <div class="mt-4">
+        <h3>Gợi ý</h3>
+        <ul>
+            <li>Kiểm tra lại chính tả</li>
+            <li>Thử tìm kiếm với từ khóa khác</li>
+            <li>Sử dụng từ khóa ngắn hơn</li>
+        </ul>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('book.new_books') }}" class="btn btn-primary">Xem sách mới</a>
+        <a href="{{ url_for('book.categories') }}" class="btn btn-outline-primary ms-2">Xem theo thể loại</a>
+    </div>
+{% endif %}
+{% endblock %}

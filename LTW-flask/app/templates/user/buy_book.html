@@ -1,0 +1,283 @@
+{% extends 'layout.html' %}
+
+{% block title %}Mua sách: {{ book.Title }} - Aloha{% endblock %}
+
+{% block main_content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('book.index') }}">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('book.book_detail', book_id=book.BookID) }}">{{ book.Title }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Mua sách</li>
+            </ol>
+        </nav>
+        
+        <h1 class="mb-4">Mua sách</h1>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        {% if book.CoverImage %}
+                            <img src="{{ book.CoverImage }}" alt="{{ book.Title }}" class="img-fluid" style="max-width: 120px;">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/book_b.png') }}" alt="{{ book.Title }}" class="img-fluid" style="max-width: 120px;">
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h5 class="card-title">{{ book.Title }}</h5>
+                        <p class="text-muted mb-1">Tác giả: {{ book.Author or 'Không có thông tin' }}</p>
+                        <p class="text-muted mb-1">Thể loại: {{ book.category.CategoryName }}</p>
+                        <p class="fs-5 fw-bold">Giá: {{ '{:,.0f}'.format(book.Price) }} VND</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Chọn phương thức thanh toán</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="bankTransfer" value="Chuyển khoản ngân hàng" checked>
+                        <label class="form-check-label" for="bankTransfer">
+                            <i class="bi bi-bank me-2"></i>Chuyển khoản ngân hàng
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="momo" value="Ví điện tử MoMo">
+                        <label class="form-check-label" for="momo">
+                            <i class="bi bi-wallet me-2"></i>Ví điện tử MoMo
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="zalopay" value="Ví điện tử ZaloPay">
+                        <label class="form-check-label" for="zalopay">
+                            <i class="bi bi-wallet me-2"></i>Ví điện tử ZaloPay
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" id="creditCard" value="Thẻ tín dụng">
+                        <label class="form-check-label" for="creditCard">
+                            <i class="bi bi-credit-card me-2"></i>Thẻ tín dụng
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin thanh toán</h5>
+                </div>
+                <div class="card-body payment-info">
+                    <!-- Bank transfer info (default) -->
+                    <div id="bankTransferInfo">
+                        <p class="mb-2">Vui lòng chuyển khoản đến tài khoản sau:</p>
+                        <ul class="list-unstyled">
+                            <li><strong>Ngân hàng:</strong> Vietcombank</li>
+                            <li><strong>Số tài khoản:</strong> 1234567890</li>
+                            <li><strong>Chủ tài khoản:</strong> CÔNG TY TNHH ALOHA</li>
+                            <li><strong>Nội dung:</strong> Thanh toan [Họ tên] mua sách {{ book.Title }}</li>
+                        </ul>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>Đơn hàng sẽ được xử lý sau khi chúng tôi nhận được thanh toán của bạn.
+                        </div>
+                    </div>
+                    
+                    <!-- MoMo info (hidden by default) -->
+                    <div id="momoInfo" style="display: none;">
+                        <p class="mb-2">Vui lòng quét mã QR hoặc chuyển tiền đến số điện thoại:</p>
+                        <ul class="list-unstyled">
+                            <li><strong>Số điện thoại:</strong> 0123456789</li>
+                            <li><strong>Chủ tài khoản:</strong> CÔNG TY TNHH ALOHA</li>
+                            <li><strong>Nội dung:</strong> Thanh toan [Họ tên] mua sách {{ book.Title }}</li>
+                        </ul>
+                        <div class="text-center my-3">
+                            <img src="{{ url_for('static', filename='img/qr-placeholder.png') }}" alt="QR Code" style="max-width: 200px;">
+                        </div>
+                    </div>
+                    
+                    <!-- ZaloPay info (hidden by default) -->
+                    <div id="zalopayInfo" style="display: none;">
+                        <p class="mb-2">Vui lòng quét mã QR hoặc chuyển tiền đến số điện thoại:</p>
+                        <ul class="list-unstyled">
+                            <li><strong>Số điện thoại:</strong> 0987654321</li>
+                            <li><strong>Chủ tài khoản:</strong> CÔNG TY TNHH ALOHA</li>
+                            <li><strong>Nội dung:</strong> Thanh toan [Họ tên] mua sách {{ book.Title }}</li>
+                        </ul>
+                        <div class="text-center my-3">
+                            <img src="{{ url_for('static', filename='img/qr-placeholder.png') }}" alt="QR Code" style="max-width: 200px;">
+                        </div>
+                    </div>
+                    
+                    <!-- Credit card info (hidden by default) -->
+                    <div id="creditCardInfo" style="display: none;">
+                        <div class="mb-3">
+                            <label for="cardNumber" class="form-label">Số thẻ</label>
+                            <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expiryDate" class="form-label">Ngày hết hạn</label>
+                                <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cvv" class="form-label">CVV</label>
+                                <input type="text" class="form-control" id="cvv" placeholder="123">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cardName" class="form-label">Tên chủ thẻ</label>
+                            <input type="text" class="form-control" id="cardName" placeholder="NGUYEN VAN A">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Tóm tắt đơn hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Giá sách:</span>
+                        <span>{{ '{:,.0f}'.format(book.Price) }} VND</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Phí giao dịch:</span>
+                        <span>0 VND</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Tổng cộng:</span>
+                        <span>{{ '{:,.0f}'.format(book.Price) }} VND</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="agreement" required>
+                <label class="form-check-label" for="agreement">
+                    Tôi đồng ý với <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">điều khoản sử dụng</a> và <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">chính sách bảo mật</a> của Aloha.
+                </label>
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary py-2">Xác nhận thanh toán</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Thông tin liên hệ</h5>
+            </div>
+            <div class="card-body">
+                <p><i class="bi bi-envelope me-2"></i>Email: info@aloha.vn</p>
+                <p><i class="bi bi-telephone me-2"></i>Điện thoại: 0123456789</p>
+                <p><i class="bi bi-clock me-2"></i>Giờ làm việc: 8:00 - 17:00, Thứ 2 - Thứ 6</p>
+                <hr>
+                <div class="alert alert-warning">
+                    <i class="bi bi-shield-check me-2"></i>Giao dịch của bạn được bảo mật bởi SSL.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Điều khoản sử dụng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>1. Điều khoản chung</h5>
+                <p>Bằng việc sử dụng dịch vụ của Aloha, bạn đồng ý tuân thủ những điều khoản sau đây.</p>
+                
+                <h5>2. Quyền sở hữu trí tuệ</h5>
+                <p>Tất cả sách số hóa trên Aloha đều được bảo vệ bởi quyền sở hữu trí tuệ. Khi mua sách, bạn chỉ được phép sử dụng cho mục đích cá nhân, không được phân phối lại hoặc sao chép để kinh doanh.</p>
+                
+                <h5>3. Trách nhiệm của người dùng</h5>
+                <p>Người dùng cam kết không sử dụng dịch vụ vào mục đích bất hợp pháp, không chia sẻ tài khoản cho người khác, và không tải lên hoặc phát tán nội dung vi phạm pháp luật.</p>
+                
+                <h5>4. Chính sách hoàn tiền</h5>
+                <p>Aloha không hoàn tiền cho các sách đã mua, trừ trường hợp có lỗi kỹ thuật từ phía chúng tôi làm ảnh hưởng đến việc truy cập sách.</p>
+                
+                <h5>5. Thay đổi điều khoản</h5>
+                <p>Aloha có quyền thay đổi điều khoản sử dụng bất cứ lúc nào. Những thay đổi sẽ có hiệu lực ngay sau khi được đăng tải trên website.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Policy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Chính sách bảo mật</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>1. Thu thập thông tin</h5>
+                <p>Chúng tôi thu thập thông tin cá nhân như tên, email, địa chỉ, và thông tin thanh toán khi bạn đăng ký tài khoản hoặc mua sách.</p>
+                
+                <h5>2. Sử dụng thông tin</h5>
+                <p>Thông tin thu thập được sử dụng để quản lý tài khoản, xử lý đơn hàng, cung cấp hỗ trợ kỹ thuật, và cải thiện dịch vụ.</p>
+                
+                <h5>3. Bảo mật thông tin</h5>
+                <p>Chúng tôi áp dụng các biện pháp bảo mật để bảo vệ thông tin cá nhân của bạn. Tất cả thông tin thanh toán được mã hóa bằng công nghệ SSL.</p>
+                
+                <h5>4. Chia sẻ thông tin</h5>
+                <p>Chúng tôi không bán hoặc cho thuê thông tin cá nhân của bạn cho bên thứ ba. Thông tin chỉ được chia sẻ với đối tác thanh toán để xử lý giao dịch.</p>
+                
+                <h5>5. Cookie và công nghệ theo dõi</h5>
+                <p>Chúng tôi sử dụng cookie để cải thiện trải nghiệm người dùng và phân tích dữ liệu về lưu lượng truy cập website.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle payment method info
+        const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+        const paymentInfos = {
+            bankTransfer: document.getElementById('bankTransferInfo'),
+            momo: document.getElementById('momoInfo'),
+            zalopay: document.getElementById('zalopayInfo'),
+            creditCard: document.getElementById('creditCardInfo')
+        };
+        
+        paymentMethods.forEach(function(method) {
+            method.addEventListener('change', function() {
+                // Hide all payment infos
+                Object.values(paymentInfos).forEach(info => {
+                    info.style.display = 'none';
+                });
+                
+                // Show selected payment info
+                const selectedMethod = this.id;
+                paymentInfos[selectedMethod].style.display = 'block';
+            });
+        });
+    });
+</script>
+{% endblock %}

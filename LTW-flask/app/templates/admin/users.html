@@ -1,0 +1,137 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Quản lý người dùng - Admin - Aloha{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="m-0">Danh sách người dùng</h2>
+    <div class="d-flex gap-2">
+        <a href="#" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+            <i class="bi bi-funnel"></i> Lọc
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên tài khoản</th>
+                        <th>Email</th>
+                        <th>Họ và tên</th>
+                        <th>Vai trò</th>
+                        <th>Ngày đăng ký</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user.UserID }}</td>
+                            <td>{{ user.Username }}</td>
+                            <td>{{ user.Email }}</td>
+                            <td>{{ user.FullName or 'Chưa cập nhật' }}</td>
+                            <td>
+                                <span class="badge {% if user.role.RoleName == 'Admin' %}bg-danger{% else %}bg-info{% endif %}">
+                                    {{ user.role.RoleName }}
+                                </span>
+                            </td>
+                            <td>{{ user.RegisterDate.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                {% if user.Status %}
+                                    <span class="status-badge active">Hoạt động</span>
+                                {% else %}
+                                    <span class="status-badge banned">Bị khóa</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('admin.edit_user', user_id=user.UserID) }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    
+                                    <!-- Only show ban/unban button for non-admin users and not for the current user -->
+                                    {% if user.UserID != current_user.UserID %}
+                                        <form action="{{ url_for('admin.ban_user', user_id=user.UserID) }}" method="post">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm {% if user.Status %}btn-warning{% else %}btn-success{% endif %}" title="{{ 'Khóa tài khoản' if user.Status else 'Mở khóa tài khoản' }}">
+                                                <i class="bi {% if user.Status %}bi-lock{% else %}bi-unlock{% endif %}"></i>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Bạn không thể khóa tài khoản của chính mình">
+                                            <i class="bi bi-lock"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">Chưa có người dùng nào.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Lọc người dùng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('admin.users') }}" method="get" id="filterForm">
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Vai trò</label>
+                        <select class="form-select" id="role" name="role">
+                            <option value="">Tất cả vai trò</option>
+                            {% for role in roles %}
+                                <option value="{{ role.RoleID }}" {% if request.args.get('role')|int == role.RoleID %}selected{% endif %}>
+                                    {{ role.RoleName }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Trạng thái</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="1" {% if request.args.get('status') == '1' %}selected{% endif %}>Hoạt động</option>
+                            <option value="0" {% if request.args.get('status') == '0' %}selected{% endif %}>Bị khóa</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="search" class="form-label">Tìm kiếm</label>
+                        <input type="text" class="form-control" id="search" name="search" placeholder="Tên tài khoản, email hoặc tên" value="{{ request.args.get('search', '') }}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="applyFilter">Áp dụng</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Apply filter
+        document.getElementById('applyFilter').addEventListener('click', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
+</script>
+{% endblock %}
